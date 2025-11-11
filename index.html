@@ -2,21 +2,10 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Moroccan Youth Athletic Festival - Fall 2025 Registration</title>
+  <title>Moroccan Youth Athletic Festival - Fall 2026 Registration</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link rel="stylesheet"
-        href="https://cdn.jsdelivr.net/npm/bulma@0.9.4/css/bulma.min.css">
-
-  <!--
-  PayPal is DISABLED for testing. When you're ready to enable payments:
-  1) Uncomment the SDK below.
-  2) Swap the test button back to startPayPal().
-  <script src="https://www.paypal.com/sdk/js?client-id=YOUR_CLIENT_ID&currency=USD"></script>
-  -->
-  <style>
-    body { background: #fafafa; }
-    .container.form-wrap { max-width: 860px; }
-  </style>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.4/css/bulma.min.css">
+  <!-- <script src="https://www.paypal.com/sdk/js?client-id=ASNXc-c_Ozu9IRC4ILp5oC6VOLz18amVlbYfVnKYA2kvJIBlQnoLUPP-Rdz4J_vyMD5toHUwg-OQH-OX&currency=USD"></script> -->
 </head>
 
 <body>
@@ -33,36 +22,15 @@
   </div>
 </section>
 
-<form id="form" class="container form-wrap m-4 pl-4" method="POST">
+<form id="form" class="container m-4 pl-4" method="POST">
   <h2 class="title is-4 mt-5">Parent Information</h2>
-  <div class="field">
-    <label class="label">Full Name</label>
-    <div class="control">
-      <input class="input" type="text" name="Parent Full Name" required>
-    </div>
-  </div>
-
-  <div class="field">
-    <label class="label">Email</label>
-    <div class="control">
-      <input class="input" type="email" name="Parent Email" required>
-    </div>
-  </div>
-
-  <div class="field">
-    <label class="label">Phone Number</label>
-    <div class="control">
-      <input class="input" type="tel" name="Parent Phone" required>
-    </div>
-  </div>
+  <div class="field"><label class="label">Full Name</label><div class="control"><input class="input" type="text" name="Parent Full Name" required></div></div>
+  <div class="field"><label class="label">Email</label><div class="control"><input class="input" type="email" name="Parent Email" required></div></div>
+  <div class="field"><label class="label">Phone Number</label><div class="control"><input class="input" type="tel" name="Parent Phone" required></div></div>
 
   <h2 class="title is-4 mt-5">Participant Information</h2>
   <div id="participants-container"></div>
-  <div class="field">
-    <div class="control">
-      <button class="button is-info" type="button" onclick="addParticipant()">Add Participant</button>
-    </div>
-  </div>
+  <div class="field"><div class="control"><button class="button is-info" type="button" onclick="addParticipant()">Add Participant</button></div></div>
 
   <h2 class="title is-4 mt-5">Waiver & Consent</h2>
   <div class="field">
@@ -72,46 +40,20 @@ I, the parent or legal guardian of the participant, give permission for my child
       </textarea>
     </div>
   </div>
-  <div class="field">
-    <div class="control">
-      <label class="checkbox">
-        <input type="checkbox" name="Waiver Consent" required>
-        I have read and agree to the above waiver.
-      </label>
-    </div>
-  </div>
+  <div class="field"><div class="control"><label class="checkbox"><input type="checkbox" name="Waiver Consent" required> I have read and agree to the above waiver.</label></div></div>
 
-  <div id="total-due" class="notification is-info" style="display:none; font-weight:bold; margin-top:20px;">
-    Total Due: $0
-  </div>
-
-  <!-- TEST BUTTON (NO PAYMENT) -->
-  <div id="proceed-container" class="field mt-5">
-    <div class="control">
-      <button class="button is-primary" type="button" onclick="submitTest()">Submit (Test without Payment)</button>
-    </div>
-  </div>
-
-  <!-- PayPal area (hidden while testing). Re-enable later if needed.
+  <div id="total-due" class="notification is-info" style="display:none; font-weight:bold; margin-top:20px;">Total Due: $0</div>
+  <div id="proceed-container" class="field mt-5"><div class="control"><button class="button is-warning" type="button" onclick="startPayPal()">Proceed to Payment</button></div></div>
   <div id="paypal-button-container" style="display:none;" class="mt-4"></div>
-  -->
 </form>
 
 <script>
-/** ==== CONFIG ==== **/
-const PRICE_PER_PARTICIPANT = 20;
-// IMPORTANT: Put your current Apps Script Web App deployment URL here:
-const FETCH_URL = "https://script.google.com/macros/s/AKfycbyXeabEGYZlN_Vwl6eU_NmI1J-fTKiqRZb_Lrop_DTbHopZ62lTlSMspxIoODbovog4/exec";
-// Toggle this to true while testing to let your Apps Script skip emails if you gate on TEST_MODE.
-const TEST_MODE = true;
-/** ================ **/
-
 function updateTotalAmount() {
   const participantCount = document.querySelectorAll('#participants-container .box').length;
   const totalDueDiv = document.getElementById('total-due');
   if (participantCount > 0) {
     totalDueDiv.style.display = 'block';
-    totalDueDiv.textContent = `Total Due: $${participantCount * PRICE_PER_PARTICIPANT}`;
+    totalDueDiv.textContent = `Total Due: $${participantCount * 20}`;
   } else {
     totalDueDiv.style.display = 'none';
   }
@@ -125,52 +67,21 @@ function addParticipant() {
     <div class="box mt-4" id="${id}">
       <div class="is-flex is-justify-content-space-between is-align-items-center mb-3">
         <h3 class="title is-5">Participant ${index + 1}</h3>
-        <button type="button" class="delete" aria-label="Remove participant" onclick="removeParticipant('${id}')"></button>
+        <button type="button" class="delete" onclick="removeParticipant('${id}')"></button>
       </div>
-
-      <div class="field">
-        <label class="label">First Name</label>
-        <div class="control">
-          <input class="input" type="text" name="Participant First Name[]" required>
-        </div>
-      </div>
-
-      <div class="field">
-        <label class="label">Last Name</label>
-        <div class="control">
-          <input class="input" type="text" name="Participant Last Name[]" required>
-        </div>
-      </div>
-
-      <div class="field">
-        <label class="label">Date of Birth</label>
-        <div class="control">
-          <input class="input" type="date" name="Participant DOB[]" required>
-        </div>
-      </div>
-
+      <div class="field"><label class="label">First Name</label><div class="control"><input class="input" type="text" name="Participant First Name[]" required></div></div>
+      <div class="field"><label class="label">Last Name</label><div class="control"><input class="input" type="text" name="Participant Last Name[]" required></div></div>
+      <div class="field"><label class="label">Date of Birth</label><div class="control"><input class="input" type="date" name="Participant DOB[]" required></div></div>
       <div class="field">
         <label class="label">Gender</label>
         <div class="control">
-          <label class="radio">
-            <input type="radio" name="Participant Gender[${index}]" value="boy" required onchange="toggleSoccerLevel('${id}', true)"> Boy (Soccer)
-          </label>
-          <label class="radio">
-            <input type="radio" name="Participant Gender[${index}]" value="girl" onchange="toggleSoccerLevel('${id}', false)"> Girl (Race)
-          </label>
+          <label class="radio"><input type="radio" name="Participant Gender[${index}]" value="boy" required onchange="toggleSoccerLevel('${id}', true)"> Boy (Soccer)</label>
+          <label class="radio"><input type="radio" name="Participant Gender[${index}]" value="girl" onchange="toggleSoccerLevel('${id}', false)"> Girl (Race)</label>
         </div>
       </div>
-
       <div class="field soccer-level" id="soccer-${id}">
         <label class="label">Soccer Level</label>
-        <div class="control">
-          <div class="select">
-            <select name="Soccer Level[]">
-              <option value="recreational">Recreational</option>
-              <option value="travel">Travel</option>
-            </select>
-          </div>
-        </div>
+        <div class="control"><div class="select"><select name="Soccer Level[]"><option value="recreational">Recreational</option><option value="travel">Travel</option></select></div></div>
       </div>
     </div>
   `);
@@ -179,7 +90,9 @@ function addParticipant() {
 
 function removeParticipant(id) {
   const box = document.getElementById(id);
-  if (box) box.remove();
+  if (box) {
+    box.remove();
+  }
   updateTotalAmount();
 }
 
@@ -188,13 +101,13 @@ function toggleSoccerLevel(participantId, show) {
   if (el) {
     el.style.display = show ? 'block' : 'none';
     const select = el.querySelector('select');
-    if (!show && select) select.value = "";
+    if (!show && select) {
+      select.value = "";
+    }
   }
 }
 
-/** ====== TEST SUBMIT (NO PAYPAL) ====== **/
-function submitTest() {
-  // Same validation used in payment flow, but we post immediately
+function startPayPal() {
   const parentName = document.querySelector('input[name="Parent Full Name"]').value.trim();
   const parentEmail = document.querySelector('input[name="Parent Email"]').value.trim();
   const parentPhone = document.querySelector('input[name="Parent Phone"]').value.trim();
@@ -208,75 +121,69 @@ function submitTest() {
 
   for (let box of participantBoxes) {
     const firstName = box.querySelector('input[name="Participant First Name[]"]').value.trim();
-    const lastName  = box.querySelector('input[name="Participant Last Name[]"]').value.trim();
-    const dob       = box.querySelector('input[name="Participant DOB[]"]').value.trim();
-    const genderSel = box.querySelector('input[type="radio"]:checked');
-    if (!firstName || !lastName || !dob || !genderSel) {
+    const lastName = box.querySelector('input[name="Participant Last Name[]"]').value.trim();
+    const dob = box.querySelector('input[name="Participant DOB[]"]').value.trim();
+    const genderSelected = box.querySelector('input[type="radio"]:checked');
+    if (!firstName || !lastName || !dob || !genderSelected) {
       alert("Please fill out all fields for every participant.");
       return;
     }
   }
 
-  // Post directly (no PayPal)
-  sendFormData();
+  document.getElementById('proceed-container').style.display = 'none';
+  document.getElementById('paypal-button-container').style.display = 'block';
+
+  paypal.Buttons({
+    createOrder: function(data, actions) {
+      const participantCount = participantBoxes.length;
+      const totalAmount = participantCount * 20;
+      return actions.order.create({purchase_units: [{amount: {value: totalAmount.toFixed(2)}}]});
+    },
+    onApprove: function(data, actions) {
+      return actions.order.capture().then(function(details) {
+        sendFormData();
+      });
+    }
+  }).render('#paypal-button-container');
 }
 
-/** ====== SEND TO APPS SCRIPT ====== **/
 function sendFormData() {
   const form = document.getElementById('form');
   const formData = new FormData(form);
 
-  // Normalize genders into an array key the server expects
+  // Fix: Manually add gender fields as array
   const genderInputs = document.querySelectorAll('input[type="radio"][name^="Participant Gender"]:checked');
   genderInputs.forEach(radio => {
     formData.append("Participant Gender[]", radio.value);
   });
 
-  // Add a testing flag so your Apps Script can optionally skip emailing
-  if (TEST_MODE) {
-    formData.append("TEST_MODE", "true");
+  const keyValuePairs = [];
+  for (let pair of formData.entries()) {
+    keyValuePairs.push(`${pair[0]}=${encodeURIComponent(pair[1])}`);
   }
+  const formDataString = keyValuePairs.join("&");
 
-  // Build x-www-form-urlencoded body
-  const pairs = [];
-  for (const [k, v] of formData.entries()) {
-    pairs.push(`${encodeURIComponent(k)}=${encodeURIComponent(v)}`);
-  }
-  const body = pairs.join("&");
-
-  fetch(FETCH_URL, {
+  fetch("https://script.google.com/macros/s/AKfycbyXeabEGYZlN_Vwl6eU_NmI1J-fTKiqRZb_Lrop_DTbHopZ62lTlSMspxIoODbovog4/exec", {
     method: "POST",
-    body,
-    headers: { "Content-Type": "application/x-www-form-urlencoded;charset=utf-8" }
-  })
-  .then(res => {
-    if (!res.ok) throw new Error("Bad response");
-    return res.text();
-  })
-  .then(() => {
-    // Redirect after success
+    body: formDataString,
+    headers: {"Content-Type": "text/plain;charset=utf-8"}
+  }).then(response => {
     window.location.href = "thank-you.html";
-  })
-  .catch(err => {
-    console.error("Form submit error:", err);
-    alert("There was a problem submitting your registration.");
+  }).catch(error => {
+    console.error('Form submit error:', error);
+    alert('There was a problem submitting your registration.');
   });
 }
-
-/** ===== INIT ===== **/
-document.addEventListener('DOMContentLoaded', () => {
-  // Start with one participant by default (optional)
-  addParticipant();
-  updateTotalAmount();
-});
-
-/** ===== OPTIONAL: PAYPAL (commented out) =====
-function startPayPal() {
-  // ... your existing PayPal flow ...
-  // On approve: sendFormData();
-}
-================================================ */
 </script>
+
 </body>
 </html>
+
+
+
+
+
+
+
+
 
