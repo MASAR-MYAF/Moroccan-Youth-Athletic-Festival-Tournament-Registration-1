@@ -2,14 +2,10 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Moroccan Youth Athletic Festival - Fall 2025 Registration</title>
+  <title>Moroccan Youth Athletic Festival - Fall 2026 Registration</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.4/css/bulma.min.css">
   <script src="https://www.paypal.com/sdk/js?client-id=ASNXc-c_Ozu9IRC4ILp5oC6VOLz18amVlbYfVnKYA2kvJIBlQnoLUPP-Rdz4J_vyMD5toHUwg-OQH-OX&currency=USD"></script>
-  <style>
-    body { background: #fafafa; }
-    .container.m-4.pl-4 { max-width: 900px; }
-  </style>
 </head>
 
 <body>
@@ -26,7 +22,7 @@
   </div>
 </section>
 
-<form id="form" class="container m-4 pl-4" method="POST" novalidate>
+<form id="form" class="container m-4 pl-4" method="POST">
   <h2 class="title is-4 mt-5">Parent Information</h2>
   <div class="field"><label class="label">Full Name</label><div class="control"><input class="input" type="text" name="Parent Full Name" required></div></div>
   <div class="field"><label class="label">Email</label><div class="control"><input class="input" type="email" name="Parent Email" required></div></div>
@@ -34,12 +30,7 @@
 
   <h2 class="title is-4 mt-5">Participant Information</h2>
   <div id="participants-container"></div>
-  <div class="field">
-    <div class="control">
-      <!-- use an ID; we’ll bind the click via JS (no inline onclick) -->
-      <button id="add-participant-btn" class="button is-info" type="button">Add Participant</button>
-    </div>
-  </div>
+  <div class="field"><div class="control"><button class="button is-info" type="button" onclick="addParticipant()">Add Participant</button></div></div>
 
   <h2 class="title is-4 mt-5">Waiver & Consent</h2>
   <div class="field">
@@ -52,93 +43,71 @@ I, the parent or legal guardian of the participant, give permission for my child
   <div class="field"><div class="control"><label class="checkbox"><input type="checkbox" name="Waiver Consent" required> I have read and agree to the above waiver.</label></div></div>
 
   <div id="total-due" class="notification is-info" style="display:none; font-weight:bold; margin-top:20px;">Total Due: $0</div>
-  <div id="proceed-container" class="field mt-5"><div class="control"><button class="button is-warning" type="button" id="proceed-btn">Proceed to Payment</button></div></div>
+  <div id="proceed-container" class="field mt-5"><div class="control"><button class="button is-warning" type="button" onclick="startPayPal()">Proceed to Payment</button></div></div>
   <div id="paypal-button-container" style="display:none;" class="mt-4"></div>
 </form>
 
 <script>
-/* ====== CONFIG ====== */
-const PRICE_PER_PARTICIPANT = 20;
-const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyXeabEGYZlN_Vwl6eU_NmI1J-fTKiqRZb_Lrop_DTbHopZ62lTlSMspxIoODbovog4/exec";
-const THANK_YOU_URL = "https://masar-myaf.github.io/thank-you.html";
-/* ==================== */
-
 function updateTotalAmount() {
   const participantCount = document.querySelectorAll('#participants-container .box').length;
   const totalDueDiv = document.getElementById('total-due');
   if (participantCount > 0) {
     totalDueDiv.style.display = 'block';
-    totalDueDiv.textContent = `Total Due: $${participantCount * PRICE_PER_PARTICIPANT}`;
+    totalDueDiv.textContent = `Total Due: $${participantCount * 20}`;
   } else {
     totalDueDiv.style.display = 'none';
   }
 }
 
 function addParticipant() {
-  try {
-    const container = document.getElementById('participants-container');
-    if (!container) throw new Error("participants-container not found");
-    const id = `participant-${Date.now()}`;
-    const index = container.children.length;
-    const html = `
-      <div class="box mt-4" id="${id}">
-        <div class="is-flex is-justify-content-space-between is-align-items-center mb-3">
-          <h3 class="title is-5">Participant ${index + 1}</h3>
-          <button type="button" class="delete" aria-label="Remove participant" data-remove="${id}"></button>
+  const container = document.getElementById('participants-container');
+  const id = `participant-${Date.now()}`;
+  const index = container.children.length;
+  container.insertAdjacentHTML('beforeend', `
+    <div class="box mt-4" id="${id}">
+      <div class="is-flex is-justify-content-space-between is-align-items-center mb-3">
+        <h3 class="title is-5">Participant ${index + 1}</h3>
+        <button type="button" class="delete" onclick="removeParticipant('${id}')"></button>
+      </div>
+      <div class="field"><label class="label">First Name</label><div class="control"><input class="input" type="text" name="Participant First Name[]" required></div></div>
+      <div class="field"><label class="label">Last Name</label><div class="control"><input class="input" type="text" name="Participant Last Name[]" required></div></div>
+      <div class="field"><label class="label">Date of Birth</label><div class="control"><input class="input" type="date" name="Participant DOB[]" required></div></div>
+      <div class="field">
+        <label class="label">Gender</label>
+        <div class="control">
+          <label class="radio"><input type="radio" name="Participant Gender[${index}]" value="boy" required onchange="toggleSoccerLevel('${id}', true)"> Boy (Soccer)</label>
+          <label class="radio"><input type="radio" name="Participant Gender[${index}]" value="girl" onchange="toggleSoccerLevel('${id}', false)"> Girl (Race)</label>
         </div>
-        <div class="field"><label class="label">First Name</label><div class="control"><input class="input" type="text" name="Participant First Name[]" required></div></div>
-        <div class="field"><label class="label">Last Name</label><div class="control"><input class="input" type="text" name="Participant Last Name[]" required></div></div>
-        <div class="field"><label class="label">Date of Birth</label><div class="control"><input class="input" type="date" name="Participant DOB[]" required></div></div>
-        <div class="field">
-          <label class="label">Gender</label>
-          <div class="control">
-            <label class="radio"><input type="radio" name="Participant Gender[${index}]" value="boy" required data-toggle-level="${id}" data-level-show="true"> Boy (Soccer)</label>
-            <label class="radio"><input type="radio" name="Participant Gender[${index}]" value="girl" data-toggle-level="${id}" data-level-show="false"> Girl (Race)</label>
-          </div>
-        </div>
-        <div class="field soccer-level" id="soccer-${id}">
-          <label class="label">Soccer Level</label>
-          <div class="control"><div class="select"><select name="Soccer Level[]"><option value="recreational">Recreational</option><option value="travel">Travel</option></select></div></div>
-        </div>
-      </div>`;
-    container.insertAdjacentHTML('beforeend', html);
-    updateTotalAmount();
-  } catch (e) {
-    console.error("addParticipant error:", e);
-    alert("Couldn't add participant. Please reload the page.");
-  }
+      </div>
+      <div class="field soccer-level" id="soccer-${id}">
+        <label class="label">Soccer Level</label>
+        <div class="control"><div class="select"><select name="Soccer Level[]"><option value="recreational">Recreational</option><option value="travel">Travel</option></select></div></div>
+      </div>
+    </div>
+  `);
+  updateTotalAmount();
 }
 
 function removeParticipant(id) {
   const box = document.getElementById(id);
-  if (box) box.remove();
+  if (box) {
+    box.remove();
+  }
   updateTotalAmount();
 }
-
-// event delegation for delete buttons + gender toggles
-document.addEventListener('click', (e) => {
-  const delId = e.target && e.target.getAttribute && e.target.getAttribute('data-remove');
-  if (delId) {
-    removeParticipant(delId);
-    return;
-  }
-  const toggleId = e.target && e.target.getAttribute && e.target.getAttribute('data-toggle-level');
-  if (toggleId) {
-    const show = e.target.getAttribute('data-level-show') === 'true';
-    toggleSoccerLevel(toggleId, show);
-  }
-});
 
 function toggleSoccerLevel(participantId, show) {
   const el = document.getElementById(`soccer-${participantId}`);
   if (el) {
     el.style.display = show ? 'block' : 'none';
     const select = el.querySelector('select');
-    if (!show && select) select.value = "";
+    if (!show && select) {
+      select.value = "";
+    }
   }
 }
 
-function validateBeforeProceed() {
+function startPayPal() {
   const parentName = document.querySelector('input[name="Parent Full Name"]').value.trim();
   const parentEmail = document.querySelector('input[name="Parent Email"]').value.trim();
   const parentPhone = document.querySelector('input[name="Parent Phone"]').value.trim();
@@ -147,32 +116,28 @@ function validateBeforeProceed() {
 
   if (!parentName || !parentEmail || !parentPhone || !waiverConsent || participantBoxes.length === 0) {
     alert("Please complete all Parent Information, add at least one Participant, and agree to Waiver.");
-    return false;
+    return;
   }
+
   for (let box of participantBoxes) {
     const firstName = box.querySelector('input[name="Participant First Name[]"]').value.trim();
-    const lastName  = box.querySelector('input[name="Participant Last Name[]"]').value.trim();
-    const dob       = box.querySelector('input[name="Participant DOB[]"]').value.trim();
-    const genderSel = box.querySelector('input[type="radio"]:checked');
-    if (!firstName || !lastName || !dob || !genderSel) {
+    const lastName = box.querySelector('input[name="Participant Last Name[]"]').value.trim();
+    const dob = box.querySelector('input[name="Participant DOB[]"]').value.trim();
+    const genderSelected = box.querySelector('input[type="radio"]:checked');
+    if (!firstName || !lastName || !dob || !genderSelected) {
       alert("Please fill out all fields for every participant.");
-      return false;
+      return;
     }
   }
-  return true;
-}
-
-function startPayPal() {
-  if (!validateBeforeProceed()) return;
 
   document.getElementById('proceed-container').style.display = 'none';
   document.getElementById('paypal-button-container').style.display = 'block';
 
   paypal.Buttons({
     createOrder: function(data, actions) {
-      const participantCount = document.querySelectorAll('#participants-container .box').length;
-      const totalAmount = participantCount * PRICE_PER_PARTICIPANT;
-      return actions.order.create({ purchase_units: [{ amount: { value: totalAmount.toFixed(2) } }] });
+      const participantCount = participantBoxes.length;
+      const totalAmount = participantCount * 20;
+      return actions.order.create({purchase_units: [{amount: {value: totalAmount.toFixed(2)}}]});
     },
     onApprove: function(data, actions) {
       return actions.order.capture().then(function(details) {
@@ -186,48 +151,58 @@ function sendFormData() {
   const form = document.getElementById('form');
   const formData = new FormData(form);
 
-  // ensure Participant Gender[] is included as array
+  // Fix: Manually add gender fields as array
   const genderInputs = document.querySelectorAll('input[type="radio"][name^="Participant Gender"]:checked');
-  genderInputs.forEach(radio => formData.append("Participant Gender[]", radio.value));
+  genderInputs.forEach(radio => {
+    formData.append("Participant Gender[]", radio.value);
+  });
 
-  // build x-www-form-urlencoded payload
   const keyValuePairs = [];
   for (let pair of formData.entries()) {
-    keyValuePairs.push(`${encodeURIComponent(pair[0])}=${encodeURIComponent(pair[1])}`);
+    keyValuePairs.push(`${pair[0]}=${encodeURIComponent(pair[1])}`);
   }
   const formDataString = keyValuePairs.join("&");
 
-  fetch(APPS_SCRIPT_URL, {
-    method: "POST",
-    mode: "no-cors", // avoid CORS blocking; response is opaque
-    headers: { "Content-Type": "application/x-www-form-urlencoded;charset=utf-8" },
-    body: formDataString
-  })
-  .then(() => {
-    window.location.assign(https://masar-myaf.github.io/Moroccan-Youth-Athletic-Festival-Tournament-Registration-1/thank-you.html);
-  })
-  .catch(err => {
-    console.error("Form submit error:", err);
-    alert("There was a problem submitting your registration.");
-  });
-}
-
-// Bind buttons and initialize safely
-document.addEventListener('DOMContentLoaded', () => {
-  // bind add participant button safely
-  const addBtn = document.getElementById('add-participant-btn');
-  if (addBtn) addBtn.addEventListener('click', addParticipant);
-
-  const proceedBtn = document.getElementById('proceed-btn');
-  if (proceedBtn) proceedBtn.addEventListener('click', startPayPal);
-
-  // ensure at least one participant so user can proceed
-  if (!document.querySelector('#participants-container .box')) {
-    addParticipant();
-  }
-  updateTotalAmount();
+fetch("https://script.google.com/macros/s/AKfycbyXeabEGYZlN_Vwl6eU_NmI1J-fTKiqRZb_Lrop_DTbHopZ62lTlSMspxIoODbovog4/exec", {
+  method: "POST",
+  mode: "no-cors",
+  headers: { "Content-Type": "application/x-www-form-urlencoded;charset=utf-8" },
+  body: formDataString
+})
+.then(() => {
+  console.log("POST sent; redirecting to thank-you…");
+  const THANK_YOU_URL = "https://masar-myaf.github.io/Moroccan-Youth-Athletic-Festival-Tournament-Registration-1/thank-you.html"; // absolute, not relative
+  // Force top-frame navigation (works even if we're inside a PayPal iframe)
+  setTimeout(() => window.top.location.replace("https://masar-myaf.github.io/Moroccan-Youth-Athletic-Festival-Tournament-Registration-1/thank-you.html"), 0);
+})
+.catch(err => {
+  console.error("Form submit error before redirect:", err);
+  alert("There was a problem submitting your registration.");
 });
+
+  
+  //fetch("https://script.google.com/macros/s/AKfycbyXeabEGYZlN_Vwl6eU_NmI1J-fTKiqRZb_Lrop_DTbHopZ62lTlSMspxIoODbovog4/exec", {
+    //method: "POST",
+    //body: formDataString,
+    //headers: {"Content-Type": "text/plain;charset=utf-8"}
+  //}).then(response => {
+    //window.location.href = "thank-you.html";
+  //}).catch(error => {
+    //console.error('Form submit error:', error);
+    //alert('There was a problem submitting your registration.');
+  //});
+}
 </script>
 
 </body>
 </html>
+
+
+
+
+
+
+
+
+
+
